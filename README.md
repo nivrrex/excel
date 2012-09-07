@@ -1,15 +1,10 @@
-excel
-=====
-
+About Excel ole
+==========
 win32 excel ole implementation for golang
-ÔÚWindowsÏµÍ³ÏÂµ÷ÓÃgithub.com/mattn/go-ole¿â²Ù×÷ExcelÎÄ¼ş
-ĞèÒªgo-ole¿âµÄÖ§³Ö
+åœ¨Windowsç³»ç»Ÿä¸‹è°ƒç”¨github.com/mattn/go-oleåº“æ“ä½œExcelæ–‡ä»¶ï¼Œéœ€è¦go-oleåº“çš„æ”¯æŒ
 
-ÏÂÔØ£º
+éœ€æ±‚
+=====
 go get github.com/mattn/go-ole
-°²×°£º
 go install github.com/mattn/go-ole
 go install github.com/mattn/go-ole/oleutil
-
-
-
