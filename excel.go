@@ -230,7 +230,7 @@ func ExcelBookSaveAs(excel *ole.IUnknown, filePath string, typeOfString string, 
 		errors.New("error: Cant't Open excel.")
 	}
 
-	/*检查版本*/
+	//Check version
 	var typeOf, xlXLS, xlXLSX int
 	application := oleutil.MustGetProperty(excelIDispatch, "Application").ToIDispatch()
 	defer application.Release()
