@@ -20,18 +20,13 @@ func fileIsExist(filepath string) (check bool) {
 	return false
 }
 
-func ExcelBookNew(visible int) (oleObject *ole.IUnknown, err error) {
+func ExcelBookNew(visible bool) (oleObject *ole.IUnknown, err error) {
 	ole.CoInitialize(0)
 	excel, _ := oleutil.CreateObject("Excel.Application")
 	excelIDispatch, _ := excel.QueryInterface(ole.IID_IDispatch)
 	defer excelIDispatch.Release()
 	if excelIDispatch == nil {
 		errors.New("error: Cant't Open excel.")
-	}
-	if visible > 1 {
-		visible = 1
-	} else if visible < 0 {
-		visible = 0
 	}
 	application := oleutil.MustGetProperty(excelIDispatch, "Application").ToIDispatch()
 	defer application.Release()
@@ -50,7 +45,7 @@ func ExcelBookNew(visible int) (oleObject *ole.IUnknown, err error) {
 	return excel, err
 }
 
-func ExcelBookOpen(filePath string, visible int, readOnly int, password string, writePassword string) (oleObject *ole.IUnknown, err error) {
+func ExcelBookOpen(filePath string, visible bool, readOnly int, password string, writePassword string) (oleObject *ole.IUnknown, err error) {
 	ole.CoInitialize(0)
 	excel, _ := oleutil.CreateObject("Excel.Application")
 	excelIDispatch, _ := excel.QueryInterface(ole.IID_IDispatch)
@@ -59,16 +54,9 @@ func ExcelBookOpen(filePath string, visible int, readOnly int, password string, 
 	if excelIDispatch == nil {
 		errors.New("error: Cant't Open excel.")
 	}
-	if visible > 1 {
-		visible = 1
-	} else if visible < 1 {
-		visible = 0
-	}
-	if visible == 1 {
-		oleutil.PutProperty(excelIDispatch, "Visible", true)
-	} else {
-		oleutil.PutProperty(excelIDispatch, "Visible", false)
-	}
+	
+	oleutil.PutProperty(excelIDispatch, "Visible", visible)
+	
 	if readOnly > 1 {
 		readOnly = 1
 	} else if readOnly < 1 {
@@ -98,7 +86,7 @@ func ExcelBookOpen(filePath string, visible int, readOnly int, password string, 
 	return excel, err
 }
 
-func ExcelBookClose(excel *ole.IUnknown, save int, alerts int) (err error) {
+func ExcelBookClose(excel *ole.IUnknown, save int, alerts bool) (err error) {
 	excelIDispatch, _ := excel.QueryInterface(ole.IID_IDispatch)
 	defer excelIDispatch.Release()
 
@@ -109,11 +97,6 @@ func ExcelBookClose(excel *ole.IUnknown, save int, alerts int) (err error) {
 		save = 1
 	} else if save < 0 {
 		save = 0
-	}
-	if alerts > 1 {
-		alerts = 1
-	} else if alerts < 0 {
-		alerts = 0
 	}
 	workbooks := oleutil.MustGetProperty(excelIDispatch, "Workbooks").ToIDispatch()
 	application := oleutil.MustGetProperty(excelIDispatch, "application").ToIDispatch()
@@ -198,16 +181,11 @@ func ExcelWriteCell(excel *ole.IUnknown, Value string, rangeOrRow string, column
 	return err
 }
 
-func ExcelBookSave(excel *ole.IUnknown, alerts int) (err error) {
+func ExcelBookSave(excel *ole.IUnknown, alerts bool) (err error) {
 	excelIDispatch, _ := excel.QueryInterface(ole.IID_IDispatch)
 	defer excelIDispatch.Release()
 	if excelIDispatch == nil {
 		errors.New("error: Cant't Open excel.")
-	}
-	if alerts > 1 {
-		alerts = 1
-	} else if alerts < 0 {
-		alerts = 0
 	}
 
 	application := oleutil.MustGetProperty(excelIDispatch, "application").ToIDispatch()
@@ -223,7 +201,7 @@ func ExcelBookSave(excel *ole.IUnknown, alerts int) (err error) {
 	return
 }
 
-func ExcelBookSaveAs(excel *ole.IUnknown, filePath string, typeOfString string, alerts int, password string, writePassword string) (err error) {
+func ExcelBookSaveAs(excel *ole.IUnknown, filePath string, typeOfString string, alerts bool, password string, writePassword string) (err error) {
 	excelIDispatch, _ := excel.QueryInterface(ole.IID_IDispatch)
 	defer excelIDispatch.Release()
 	if excelIDispatch == nil {
@@ -266,11 +244,6 @@ func ExcelBookSaveAs(excel *ole.IUnknown, filePath string, typeOfString string, 
 	} else {
 		errors.New("error: Type is error.")
 		return
-	}
-	if alerts > 1 {
-		alerts = 1
-	} else if alerts < 0 {
-		alerts = 0
 	}
 
 	oleutil.PutProperty(application, "DisplayAlerts", alerts)
