@@ -265,9 +265,9 @@ func ExcelBookSaveAs(excel *ole.IUnknown, filePath string, typeOfString string, 
 		oleutil.MustCallMethod(activeWorkBook, "SaveAs", filePath, typeOf, nil, writePassword).ToIDispatch()
 	}
 
-	if alerts == 0 {
-		oleutil.PutProperty(application, "DisplayAlerts", 1)
-		oleutil.PutProperty(application, "ScreenUpdating", 1)
+	if !alerts {
+		oleutil.PutProperty(application, "DisplayAlerts", true)
+		oleutil.PutProperty(application, "ScreenUpdating", true)
 	}
 	return
 }
