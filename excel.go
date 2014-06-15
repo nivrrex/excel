@@ -7,8 +7,8 @@ import (
 
 import (
 	"errors"
-	"strconv"
 	"fmt"
+	"strconv"
 )
 
 /**************************struct and objcet**************************/
@@ -185,29 +185,25 @@ func main() {
 	filePath := "T:\\test.xlsx"
 	//e.New()
 	e.Open(filePath)
-	fmt.Println (e.Cells(1,1))
+	fmt.Println(e.Cells(1, 1))
 
-	e,_ = (e.SheetsCount())
-	fmt.Println (e.count)
+	e, _ = (e.SheetsCount())
+	fmt.Println(e.count)
 
 	e.Sheet(1)
 
-	v ,_:= e.Cells(1,1)
-	fmt.Println (v)
+	v, _ := e.Cells(1, 1)
+	fmt.Println(v)
 
-	for i:=1 ; i< 9 ; i++ {
-		e.CellsWrite(strconv.Itoa(i),i,1)
+	for i := 1; i < 9; i++ {
+		e.CellsWrite(strconv.Itoa(i), i, 1)
 	}
 
 	e.Save()
-	e.SaveAs("T:\\test.result.xls","xls")
+	e.SaveAs("T:\\test.result.xls", "xls")
 
 	e.Close()
 }
-
-
-
-
 
 /**************************function**************************/
 /*
