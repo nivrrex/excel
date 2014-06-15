@@ -34,4 +34,3 @@ func main() {
 
 	e.Close()
 }
-
