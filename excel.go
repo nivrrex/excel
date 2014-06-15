@@ -7,9 +7,7 @@ import (
 
 import (
 	"errors"
-	"os"
-	"regexp"
-	"strconv"
+//	"strconv"
 	"fmt"
 )
 
@@ -179,7 +177,9 @@ func (this *Excel) CellsWrite(value string, row int, column int) (err error) {
 	return err
 }
 
+
 /**************************function**************************/
+/*
 func fileIsExist(filepath string) (check bool) {
 	_, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
 	if os.IsExist(err) {
@@ -439,3 +439,4 @@ func ExcelBookSaveAs(excel *ole.IUnknown, filePath string, typeOfString string, 
 	}
 	return
 }
+*/
