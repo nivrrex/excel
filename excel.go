@@ -1,4 +1,4 @@
-package excel
+package main
 
 import (
 	"github.com/mattn/go-ole"
@@ -7,7 +7,7 @@ import (
 
 import (
 	"errors"
-//	"strconv"
+	"strconv"
 	"fmt"
 )
 
@@ -176,6 +176,37 @@ func (this *Excel) CellsWrite(value string, row int, column int) (err error) {
 	defer cells.Release()
 	return err
 }
+
+/************************** Test **************************/
+
+func main() {
+	e := &Excel{visible: false, readonly: false, save: true}
+
+	filePath := "T:\\test.xlsx"
+	//e.New()
+	e.Open(filePath)
+	fmt.Println (e.Cells(1,1))
+
+	e,_ = (e.SheetsCount())
+	fmt.Println (e.count)
+
+	e.Sheet(1)
+
+	v ,_:= e.Cells(1,1)
+	fmt.Println (v)
+
+	for i:=1 ; i< 9 ; i++ {
+		e.CellsWrite(strconv.Itoa(i),i,1)
+	}
+
+	e.Save()
+	e.SaveAs("T:\\test.result.xls","xls")
+
+	e.Close()
+}
+
+
+
 
 
 /**************************function**************************/
