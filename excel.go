@@ -10,8 +10,176 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"fmt"
 )
 
+/**************************struct and objcet**************************/
+type Excel struct {
+	excel_obj      *ole.IUnknown
+	excel          *ole.IDispatch
+	workbooks      *ole.IDispatch
+	sheets         *ole.IDispatch
+	count          int
+	visible        bool
+	readonly       bool
+	save           bool
+	displayAlerts  bool
+	screenUpdating bool
+}
+
+func (this *Excel) New() (e *Excel, err error) {
+	ole.CoInitialize(0)
+	this.excel_obj, _ = oleutil.CreateObject("Excel.Application")
+	this.excel, _ = this.excel_obj.QueryInterface(ole.IID_IDispatch)
+	if this.excel == nil {
+		errors.New("error: Cant't Open excel.")
+	}
+
+	oleutil.PutProperty(this.excel, "Visible", this.visible)
+	oleutil.PutProperty(this.excel, "DisplayAlerts", this.displayAlerts)
+	oleutil.PutProperty(this.excel, "ScreenUpdating", this.screenUpdating)
+
+	this.workbooks = oleutil.MustGetProperty(this.excel, "WorkBooks").ToIDispatch()
+	oleutil.MustCallMethod(this.workbooks, "Add").ToIDispatch()
+
+	return this, err
+}
+
+func (this *Excel) Open(filePath string) (e *Excel, err error) {
+	ole.CoInitialize(0)
+	this.excel_obj, _ = oleutil.CreateObject("Excel.Application")
+	this.excel, _ = this.excel_obj.QueryInterface(ole.IID_IDispatch)
+	if this.excel == nil {
+		errors.New("error: Cant't Open excel.")
+	}
+
+	oleutil.PutProperty(this.excel, "Visible", this.visible)
+	oleutil.PutProperty(this.excel, "DisplayAlerts", this.displayAlerts)
+	oleutil.PutProperty(this.excel, "ScreenUpdating", this.screenUpdating)
+
+	this.workbooks = oleutil.MustGetProperty(this.excel, "WorkBooks").ToIDispatch()
+	//no password,to do  ...
+	oleutil.MustCallMethod(this.workbooks, "open", filePath, nil, this.readonly).ToIDispatch()
+
+	return this, err
+}
+
+func (this *Excel) Close() (err error) {
+	oleutil.PutProperty(this.excel, "DisplayAlerts", this.displayAlerts)
+	oleutil.PutProperty(this.excel, "ScreenUpdating", this.screenUpdating)
+	if this.save {
+		oleutil.MustCallMethod(this.excel, "Save").ToIDispatch()
+	}
+
+	oleutil.MustCallMethod(this.workbooks, "Close").ToIDispatch()
+	oleutil.MustCallMethod(this.excel, "Quit").ToIDispatch()
+
+	if this.sheets != nil {
+		defer this.sheets.Release()
+	}
+	defer this.workbooks.Release()
+	defer this.excel.Release()
+	defer this.excel_obj.Release()
+
+	return err
+}
+
+func (this *Excel) Save() (err error) {
+	oleutil.MustCallMethod(this.excel, "Save").ToIDispatch()
+	return err
+}
+
+func (this *Excel) SaveAs(filepath string, filetype string) (err error) {
+	//Check version
+	var typeOf, xlXLS, xlXLSX int
+	fmt.Println(1111)
+	version := oleutil.MustGetProperty(this.excel, "Version").ToString()
+	if version == "12.0" {
+		xlXLS = 56
+		xlXLSX = 51
+	} else {
+		xlXLS = -4143
+	}
+	xlCSV := 6
+	xlTXT := -4158
+	xlTemplate := 17
+	xlHtml := 44
+	fmt.Println(2222)
+
+	if filetype == "xls" || filetype == "xlsx" || filetype == "csv" || filetype == "txt" || filetype == "template" || filetype == "html" {
+		switch filetype {
+		case "xls":
+			typeOf = xlXLS
+		case "xlsx":
+			typeOf = xlXLSX
+		case "csv":
+			typeOf = xlCSV
+		case "txt":
+			typeOf = xlTXT
+		case "template":
+			typeOf = xlTemplate
+		case "html":
+			typeOf = xlHtml
+		default:
+			typeOf = 0
+		}
+	} else {
+		err = errors.New("error: Type is error.")
+		return err
+	}
+
+	//no password
+	activeWorkBook := oleutil.MustGetProperty(this.excel, "ActiveWorkBook").ToIDispatch()
+	oleutil.MustCallMethod(activeWorkBook, "SaveAs", filepath, typeOf, nil, nil).ToIDispatch()
+
+	defer activeWorkBook.Release()
+	return err
+}
+
+func (this *Excel) SheetsCount() (e *Excel, err error) {
+	sheets := oleutil.MustGetProperty(this.excel, "Sheets").ToIDispatch()
+	sheet_number := (int)(oleutil.MustGetProperty(sheets, "Count").Val)
+	this.count = sheet_number
+
+	defer sheets.Release()
+	return this, err
+}
+
+func (this *Excel) Sheet(i int) (e *Excel, err error) {
+	if this.count == 0 {
+		this.SheetsCount()
+	}
+
+	this.sheets = oleutil.MustGetProperty(this.excel, "Worksheets", i).ToIDispatch()
+	oleutil.MustCallMethod(this.sheets, "Select").ToIDispatch()
+
+	return this, err
+}
+
+func (this *Excel) Cells(row int, column int) (value string, err error) {
+	if this.sheets == nil {
+		err = errors.New("error: please use Excel.Sheet(i) to appoint the sheet.")
+		return "", err
+	}
+	cells := oleutil.MustGetProperty(this.sheets, "Cells", row, column).ToIDispatch()
+	value = oleutil.MustGetProperty(cells, "Text").ToString()
+
+	defer cells.Release()
+	return value, err
+}
+func (this *Excel) CellsWrite(value string, row int, column int) (err error) {
+	if this.sheets == nil {
+		err = errors.New("error: please use Excel.Sheet(i) to appoint the sheet.")
+		return err
+	}
+	cells := oleutil.MustGetProperty(this.sheets, "Cells", row, column).ToIDispatch()
+	oleutil.PutProperty(cells, "Value", value)
+
+	defer cells.Release()
+	return err
+}
+
+/**************************function**************************/
 func fileIsExist(filepath string) (check bool) {
 	_, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
 	if os.IsExist(err) {
@@ -54,9 +222,9 @@ func ExcelBookOpen(filePath string, visible bool, readOnly int, password string,
 	if excelIDispatch == nil {
 		errors.New("error: Cant't Open excel.")
 	}
-	
+
 	oleutil.PutProperty(excelIDispatch, "Visible", visible)
-	
+
 	if readOnly > 1 {
 		readOnly = 1
 	} else if readOnly < 1 {
