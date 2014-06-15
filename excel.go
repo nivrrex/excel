@@ -1,4 +1,4 @@
-package main
+package excel
 
 import (
 	"github.com/mattn/go-ole"
@@ -7,91 +7,88 @@ import (
 
 import (
 	"errors"
-	"fmt"
-	"strconv"
 )
 
-/**************************struct and objcet**************************/
+/************************** struct and objcet **************************/
 type Excel struct {
-	excel_obj      *ole.IUnknown
-	excel          *ole.IDispatch
-	workbooks      *ole.IDispatch
-	sheets         *ole.IDispatch
-	count          int
-	visible        bool
-	readonly       bool
-	save           bool
-	displayAlerts  bool
-	screenUpdating bool
+	Excel_obj      *ole.IUnknown
+	Excel          *ole.IDispatch
+	Workbooks      *ole.IDispatch
+	Sheets         *ole.IDispatch
+	Count          int
+	Visible        bool
+	Readonly       bool
+	Saved          bool
+	DisplayAlerts  bool
+	ScreenUpdating bool
 }
 
 func (this *Excel) New() (e *Excel, err error) {
 	ole.CoInitialize(0)
-	this.excel_obj, _ = oleutil.CreateObject("Excel.Application")
-	this.excel, _ = this.excel_obj.QueryInterface(ole.IID_IDispatch)
-	if this.excel == nil {
+	this.Excel_obj, _ = oleutil.CreateObject("Excel.Application")
+	this.Excel, _ = this.Excel_obj.QueryInterface(ole.IID_IDispatch)
+	if this.Excel == nil {
 		errors.New("error: Cant't Open excel.")
 	}
 
-	oleutil.PutProperty(this.excel, "Visible", this.visible)
-	oleutil.PutProperty(this.excel, "DisplayAlerts", this.displayAlerts)
-	oleutil.PutProperty(this.excel, "ScreenUpdating", this.screenUpdating)
+	oleutil.PutProperty(this.Excel, "Visible", this.Visible)
+	oleutil.PutProperty(this.Excel, "DisplayAlerts", this.DisplayAlerts)
+	oleutil.PutProperty(this.Excel, "ScreenUpdating", this.ScreenUpdating)
 
-	this.workbooks = oleutil.MustGetProperty(this.excel, "WorkBooks").ToIDispatch()
-	oleutil.MustCallMethod(this.workbooks, "Add").ToIDispatch()
+	this.Workbooks = oleutil.MustGetProperty(this.Excel, "WorkBooks").ToIDispatch()
+	oleutil.MustCallMethod(this.Workbooks, "Add").ToIDispatch()
 
 	return this, err
 }
 
 func (this *Excel) Open(filePath string) (e *Excel, err error) {
 	ole.CoInitialize(0)
-	this.excel_obj, _ = oleutil.CreateObject("Excel.Application")
-	this.excel, _ = this.excel_obj.QueryInterface(ole.IID_IDispatch)
-	if this.excel == nil {
+	this.Excel_obj, _ = oleutil.CreateObject("Excel.Application")
+	this.Excel, _ = this.Excel_obj.QueryInterface(ole.IID_IDispatch)
+	if this.Excel == nil {
 		errors.New("error: Cant't Open excel.")
 	}
 
-	oleutil.PutProperty(this.excel, "Visible", this.visible)
-	oleutil.PutProperty(this.excel, "DisplayAlerts", this.displayAlerts)
-	oleutil.PutProperty(this.excel, "ScreenUpdating", this.screenUpdating)
+	oleutil.PutProperty(this.Excel, "Visible", this.Visible)
+	oleutil.PutProperty(this.Excel, "DisplayAlerts", this.DisplayAlerts)
+	oleutil.PutProperty(this.Excel, "ScreenUpdating", this.ScreenUpdating)
 
-	this.workbooks = oleutil.MustGetProperty(this.excel, "WorkBooks").ToIDispatch()
+	this.Workbooks = oleutil.MustGetProperty(this.Excel, "WorkBooks").ToIDispatch()
 	//no password,to do  ...
-	oleutil.MustCallMethod(this.workbooks, "open", filePath, nil, this.readonly).ToIDispatch()
+	oleutil.MustCallMethod(this.Workbooks, "open", filePath, nil, this.Readonly).ToIDispatch()
 
 	return this, err
 }
 
 func (this *Excel) Close() (err error) {
-	oleutil.PutProperty(this.excel, "DisplayAlerts", this.displayAlerts)
-	oleutil.PutProperty(this.excel, "ScreenUpdating", this.screenUpdating)
-	if this.save {
-		oleutil.MustCallMethod(this.excel, "Save").ToIDispatch()
+	oleutil.PutProperty(this.Excel, "DisplayAlerts", this.DisplayAlerts)
+	oleutil.PutProperty(this.Excel, "ScreenUpdating", this.ScreenUpdating)
+	if this.Saved {
+		oleutil.MustCallMethod(this.Excel, "Save").ToIDispatch()
 	}
 
-	oleutil.MustCallMethod(this.workbooks, "Close").ToIDispatch()
-	oleutil.MustCallMethod(this.excel, "Quit").ToIDispatch()
+	oleutil.MustCallMethod(this.Workbooks, "Close").ToIDispatch()
+	oleutil.MustCallMethod(this.Excel, "Quit").ToIDispatch()
 
-	if this.sheets != nil {
-		defer this.sheets.Release()
+	if this.Sheets != nil {
+		defer this.Sheets.Release()
 	}
-	defer this.workbooks.Release()
-	defer this.excel.Release()
-	defer this.excel_obj.Release()
+	defer this.Workbooks.Release()
+	defer this.Excel.Release()
+	defer this.Excel_obj.Release()
 
 	return err
 }
 
 func (this *Excel) Save() (err error) {
-	oleutil.MustCallMethod(this.excel, "Save").ToIDispatch()
+	oleutil.MustCallMethod(this.Excel, "Save").ToIDispatch()
 	return err
 }
 
 func (this *Excel) SaveAs(filepath string, filetype string) (err error) {
 	//Check version
 	var typeOf, xlXLS, xlXLSX int
-	fmt.Println(1111)
-	version := oleutil.MustGetProperty(this.excel, "Version").ToString()
+	version := oleutil.MustGetProperty(this.Excel, "Version").ToString()
 	if version == "12.0" {
 		xlXLS = 56
 		xlXLSX = 51
@@ -102,7 +99,6 @@ func (this *Excel) SaveAs(filepath string, filetype string) (err error) {
 	xlTXT := -4158
 	xlTemplate := 17
 	xlHtml := 44
-	fmt.Println(2222)
 
 	if filetype == "xls" || filetype == "xlsx" || filetype == "csv" || filetype == "txt" || filetype == "template" || filetype == "html" {
 		switch filetype {
@@ -127,7 +123,7 @@ func (this *Excel) SaveAs(filepath string, filetype string) (err error) {
 	}
 
 	//no password
-	activeWorkBook := oleutil.MustGetProperty(this.excel, "ActiveWorkBook").ToIDispatch()
+	activeWorkBook := oleutil.MustGetProperty(this.Excel, "ActiveWorkBook").ToIDispatch()
 	oleutil.MustCallMethod(activeWorkBook, "SaveAs", filepath, typeOf, nil, nil).ToIDispatch()
 
 	defer activeWorkBook.Release()
@@ -135,77 +131,51 @@ func (this *Excel) SaveAs(filepath string, filetype string) (err error) {
 }
 
 func (this *Excel) SheetsCount() (e *Excel, err error) {
-	sheets := oleutil.MustGetProperty(this.excel, "Sheets").ToIDispatch()
+	sheets := oleutil.MustGetProperty(this.Excel, "Sheets").ToIDispatch()
 	sheet_number := (int)(oleutil.MustGetProperty(sheets, "Count").Val)
-	this.count = sheet_number
+	this.Count = sheet_number
 
 	defer sheets.Release()
 	return this, err
 }
 
 func (this *Excel) Sheet(i int) (e *Excel, err error) {
-	if this.count == 0 {
+	if this.Count == 0 {
 		this.SheetsCount()
 	}
 
-	this.sheets = oleutil.MustGetProperty(this.excel, "Worksheets", i).ToIDispatch()
-	oleutil.MustCallMethod(this.sheets, "Select").ToIDispatch()
+	this.Sheets = oleutil.MustGetProperty(this.Excel, "Worksheets", i).ToIDispatch()
+	oleutil.MustCallMethod(this.Sheets, "Select").ToIDispatch()
 
 	return this, err
 }
 
 func (this *Excel) Cells(row int, column int) (value string, err error) {
-	if this.sheets == nil {
+	if this.Sheets == nil {
 		err = errors.New("error: please use Excel.Sheet(i) to appoint the sheet.")
 		return "", err
 	}
-	cells := oleutil.MustGetProperty(this.sheets, "Cells", row, column).ToIDispatch()
+	cells := oleutil.MustGetProperty(this.Sheets, "Cells", row, column).ToIDispatch()
 	value = oleutil.MustGetProperty(cells, "Text").ToString()
 
 	defer cells.Release()
 	return value, err
 }
+
 func (this *Excel) CellsWrite(value string, row int, column int) (err error) {
-	if this.sheets == nil {
+	if this.Sheets == nil {
 		err = errors.New("error: please use Excel.Sheet(i) to appoint the sheet.")
 		return err
 	}
-	cells := oleutil.MustGetProperty(this.sheets, "Cells", row, column).ToIDispatch()
+	cells := oleutil.MustGetProperty(this.Sheets, "Cells", row, column).ToIDispatch()
 	oleutil.PutProperty(cells, "Value", value)
 
 	defer cells.Release()
 	return err
 }
 
-/************************** Test **************************/
 
-func main() {
-	e := &Excel{visible: false, readonly: false, save: true}
-
-	filePath := "T:\\test.xlsx"
-	//e.New()
-	e.Open(filePath)
-	fmt.Println(e.Cells(1, 1))
-
-	e, _ = (e.SheetsCount())
-	fmt.Println(e.count)
-
-	e.Sheet(1)
-
-	v, _ := e.Cells(1, 1)
-	fmt.Println(v)
-
-	for i := 1; i < 9; i++ {
-		e.CellsWrite(strconv.Itoa(i), i, 1)
-	}
-
-	e.Save()
-	e.SaveAs("T:\\test.result.xls", "xls")
-
-	e.Close()
-}
-
-/**************************function**************************/
+/************************** function **************************/
 /*
 func fileIsExist(filepath string) (check bool) {
 	_, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
