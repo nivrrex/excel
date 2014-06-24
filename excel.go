@@ -16,6 +16,7 @@ type Excel struct {
 	Workbooks      *ole.IDispatch
 	Sheets         *ole.IDispatch
 	Count          int
+	Version		   string
 	Visible        bool
 	Readonly       bool
 	Saved          bool
@@ -30,6 +31,9 @@ func (this *Excel) New() (e *Excel, err error) {
 	if this.Excel == nil {
 		errors.New("error: Cant't Open excel.")
 	}
+
+	version := oleutil.MustGetProperty(this.Excel, "Version").ToString()
+	this.Version = version
 
 	oleutil.PutProperty(this.Excel, "Visible", this.Visible)
 	oleutil.PutProperty(this.Excel, "DisplayAlerts", this.DisplayAlerts)
@@ -48,6 +52,9 @@ func (this *Excel) Open(filePath string) (e *Excel, err error) {
 	if this.Excel == nil {
 		errors.New("error: Cant't Open excel.")
 	}
+
+	version := oleutil.MustGetProperty(this.Excel, "Version").ToString()
+	this.Version = version
 
 	oleutil.PutProperty(this.Excel, "Visible", this.Visible)
 	oleutil.PutProperty(this.Excel, "DisplayAlerts", this.DisplayAlerts)
@@ -88,8 +95,7 @@ func (this *Excel) Save() (err error) {
 func (this *Excel) SaveAs(filepath string, filetype string) (err error) {
 	//Check version
 	var typeOf, xlXLS, xlXLSX int
-	version := oleutil.MustGetProperty(this.Excel, "Version").ToString()
-	if version == "12.0" {
+	if this.Version == "12.0" {
 		xlXLS = 56
 		xlXLSX = 51
 	} else {
