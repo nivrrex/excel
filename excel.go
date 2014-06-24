@@ -156,7 +156,7 @@ func (this *Excel) Cells(row int, column int) (value string, err error) {
 		return "", err
 	}
 	cells := oleutil.MustGetProperty(this.Sheets, "Cells", row, column).ToIDispatch()
-	value = oleutil.MustGetProperty(cells, "Text").ToString()
+	value = oleutil.MustGetProperty(cells, "Value").ToString()
 
 	defer cells.Release()
 	return value, err
